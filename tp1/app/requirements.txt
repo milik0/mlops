@@ -3,3 +3,5 @@ pydantic==2.5.0
 pandas==2.1.4
 mlflow==2.8.1
 uvicorn==0.24.0
+streamlit
+joblib
