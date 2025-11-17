@@ -1,12 +1,18 @@
 # ML Model Transpiling to C
 
-This project demonstrates how to train a machine learning model in Python and transpile it to C code for deployment in resource-constrained environments.
+This project demonstrates how to train machine learning models in Python and transpile them to C code for deployment in resource-constrained environments.
 
 ## What it does
 
-1. **Trains** a linear regression model to predict house prices based on size, number of rooms, and garden presence
-2. **Transpiles** the trained model into standalone C code
+1. **Trains** ML models (Linear Regression, Logistic Regression, Decision Trees)
+2. **Transpiles** trained models into standalone C code with automatic model type detection
 3. **Compiles** and executes the C program to verify predictions match the Python model
+
+## Supported Models
+
+- **Linear Regression** - For continuous value prediction
+- **Logistic Regression** - For binary classification with probability estimates
+- **Decision Trees** - For classification/regression with tree-based logic
 
 ## Usage
 
@@ -16,32 +22,73 @@ This project demonstrates how to train a machine learning model in Python and tr
 pip install -r requirements.txt
 ```
 
-### 2. Train the model
+### 2. Train models
 
 ```bash
+# Linear Regression (house price prediction)
 python3 train_model.py
-```
 
-This creates `regression.joblib` with the trained model.
+# Logistic Regression (binary classification)
+python3 train_logistic.py
+
+# Decision Tree (classification)
+python3 train_tree.py
+```
 
 ### 3. Transpile to C
 
+The transpiler automatically detects the model type:
+
 ```bash
+# Transpile linear regression
 python3 transpile_simple_model.py
+
+# Transpile logistic regression
+python3 transpile_logistic.py
+
+# Transpile decision tree
+python3 transpile_tree.py
 ```
 
-This generates `model.c`, compiles it to `./model`, and runs a test prediction.
+Each script generates C code, compiles it, and runs a test prediction.
 
-### 4. Run the C program
+### 4. Run the C programs
 
 ```bash
-./model
+./model              # Linear regression
+./model_logistic     # Logistic regression (requires recompilation)
+./model_tree         # Decision tree (requires recompilation)
 ```
 
 ## Files
 
-- `train_model.py` - Trains linear regression model on house data
-- `transpile_simple_model.py` - Converts joblib model to C code
-- `houses.csv` - Training dataset
-- `model.c` - Generated C code (auto-created)
-- `regression.joblib` - Trained model (auto-created)
+### Training Scripts
+- `train_model.py` - Trains linear regression on house data
+- `train_logistic.py` - Trains logistic regression on synthetic data
+- `train_tree.py` - Trains decision tree classifier
+
+### Transpiler
+- `transpile_simple_model.py` - Main transpiler with auto-detection
+- `transpile_logistic.py` - Transpile logistic regression
+- `transpile_tree.py` - Transpile decision tree
+
+### Data & Models
+- `houses.csv` - House price training dataset
+- `regression.joblib` - Trained linear regression model
+- `logistic.joblib` - Trained logistic regression model
+- `tree.joblib` - Trained decision tree model
+
+### Generated C Files
+- `model.c` - Linear regression C code
+- `model_logistic.c` - Logistic regression C code with sigmoid
+- `model_tree.c` - Decision tree C code with if-else logic
+
+## How It Works
+
+The transpiler reads a scikit-learn model from a joblib file, extracts the model parameters (coefficients, tree structure, etc.), and generates equivalent C code:
+
+- **Linear models**: Direct coefficient multiplication and addition
+- **Logistic regression**: Includes sigmoid activation function
+- **Decision trees**: Converts tree nodes into nested if-else statements
+
+All generated C code is standalone with no external dependencies (only standard math library).
