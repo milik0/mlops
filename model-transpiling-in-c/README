@@ -1,0 +1,47 @@
+# ML Model Transpiling to C
+
+This project demonstrates how to train a machine learning model in Python and transpile it to C code for deployment in resource-constrained environments.
+
+## What it does
+
+1. **Trains** a linear regression model to predict house prices based on size, number of rooms, and garden presence
+2. **Transpiles** the trained model into standalone C code
+3. **Compiles** and executes the C program to verify predictions match the Python model
+
+## Usage
+
+### 1. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Train the model
+
+```bash
+python3 train_model.py
+```
+
+This creates `regression.joblib` with the trained model.
+
+### 3. Transpile to C
+
+```bash
+python3 transpile_simple_model.py
+```
+
+This generates `model.c`, compiles it to `./model`, and runs a test prediction.
+
+### 4. Run the C program
+
+```bash
+./model
+```
+
+## Files
+
+- `train_model.py` - Trains linear regression model on house data
+- `transpile_simple_model.py` - Converts joblib model to C code
+- `houses.csv` - Training dataset
+- `model.c` - Generated C code (auto-created)
+- `regression.joblib` - Trained model (auto-created)
