@@ -5,7 +5,6 @@ import mlflow
 import mlflow.pyfunc as pyfunc
 from typing import Optional, Any, cast
 
-# Configure MLflow (harmless if MLflow server is not reachable)
 mlflow.set_tracking_uri("http://mlflow:8080")
 MLFLOW_MODEL_URI = "models:/tracking-quickstart/2"
 
