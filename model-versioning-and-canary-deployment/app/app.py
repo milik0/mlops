@@ -7,7 +7,7 @@ from typing import Optional, Any, cast
 import random
 
 mlflow.set_tracking_uri("http://mlflow:8080")
-MLFLOW_MODEL_URI = "models:/tracking-quickstart/2"
+MLFLOW_MODEL_URI = "models:/tracking-quickstart/latest"
 
 # Canary deployment: two model slots
 current_model: Optional[Any] = None
