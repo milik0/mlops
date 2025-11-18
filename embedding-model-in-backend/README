@@ -8,7 +8,7 @@ cd /home/milik/Documents/scia/s9/mlops/mlops/tp1
 docker compose up -d
 ```
 
-### Test Endpoints
+### Test Endpoints 
 ```bash
 # GET /predict 
 curl http://localhost:8000/predict
