@@ -16,7 +16,7 @@ This project demonstrates model lifecycle management using MLflow with a FastAPI
 │   └── artifacts/          # Model artifacts (generated)
 ├── tests/
 │   └── test_api.py         # Comprehensive pytest test suite
-├── docker-compose.yml      # Orchestrates MLflow and API services
+├── docker compose.yml      # Orchestrates MLflow and API services
 └── answers.md              # Project documentation
 ```
 
@@ -35,7 +35,7 @@ This project demonstrates model lifecycle management using MLflow with a FastAPI
 - `/update-model` endpoint for dynamic model updates
 - Model loaded from MLflow (not copied in Docker image)
 - Automated tests
-- Docker containerization with docker-compose
+- Docker containerization with docker compose
 
 ### Part 3: Canary Deployment
 - Two model slots: `current` and `next`
@@ -55,7 +55,7 @@ This project demonstrates model lifecycle management using MLflow with a FastAPI
 ### 1. Start the Services
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 This will start:
@@ -320,7 +320,7 @@ Then rerun the training script.
 
 ### Service Not Starting
 - Ensure ports 8000 and 8080 are available
-- Check logs: `docker-compose logs`
+- Check logs: `docker compose logs`
 
 ### Model Not Loading
 - Verify the model exists in MLflow UI
@@ -335,10 +335,10 @@ Then rerun the training script.
 
 Stop and remove containers:
 ```bash
-docker-compose down
+docker compose down
 ```
 
 Remove volumes (this will delete MLflow data):
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
