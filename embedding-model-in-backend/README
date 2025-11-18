@@ -10,7 +10,7 @@ docker compose up -d
 
 ### Test Endpoints
 ```bash
-# GET /predict
+# GET /predict 
 curl http://localhost:8000/predict
 
 # POST /predict
