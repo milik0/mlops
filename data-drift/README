@@ -1,0 +1,34 @@
+# Data Drift Detection and Model Retraining
+
+This project demonstrates data drift detection techniques using Eurybia and Alibi-Detect on image data (CIFAR-10), along with model retraining strategies.
+
+## Overview
+
+### Eurybia
+We use Eurybia to detect data drift on tabular housing data. Eurybia trains a binary classification model to distinguish between baseline (training) and current (production) datasets. The AUC metric indicates drift severity: AUC = 0.5 means no drift, while AUC close to 1.0 indicates significant drift. We tested with no drift, greedy drift (adding +4 to room counts), and subtle drift (5% increase in size).
+
+### Alibi-Detect (KSDrift)
+We implement the Kolmogorov-Smirnov drift detector on CIFAR-10 image data. The KSDrift detector uses a statistical test with a p-value threshold (0.05) to detect distribution changes between reference data and corrupted test images. We preprocess images through an autoencoder to reduce dimensionality before applying the KS test.
+
+## Requirements
+
+- **Python**: 3.10
+- **TensorFlow**: 2.14
+- **Keras**: 2.14
+- **alibi-detect**: latest
+- **eurybia**: latest
+
+## Installation
+
+```bash
+pip install --upgrade pip
+pip install tensorflow==2.14 keras==2.14 alibi-detect eurybia jupyter
+```
+
+## Usage
+
+Run the Jupyter notebook:
+
+```bash
+jupyter notebook 2025_Drift_model_and_retraining.ipynb
+```
