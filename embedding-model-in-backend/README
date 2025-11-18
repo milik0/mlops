@@ -1,0 +1,271 @@
+# Quick Reference - All Levels
+
+## Level 0 - Local FastAPI Server ✓
+
+### Start Server
+```bash
+cd /home/milik/Documents/scia/s9/mlops/mlops/tp1
+docker compose up -d
+```
+
+### Test Endpoints
+```bash
+# GET /predict
+curl http://localhost:8000/predict
+
+# POST /predict
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"data": [[1500.0, 3.0, 1.0, 100.0]]}'
+
+# Run tests
+pytest tests/test_api_simple.py -v
+```
+
+### Stop Server
+```bash
+docker compose down
+```
+
+---
+
+## Level 0.5 - Remote Deployment
+
+### Connect to VM
+```bash
+ssh -p 8087 ubuntu@87.21.99.126
+# Password: Supermotdepasse!42
+```
+
+### Deploy (on VM)
+```bash
+# Create folder
+mkdir -p /home/ubuntu/YOUR_INITIALS
+cd /home/ubuntu/YOUR_INITIALS
+
+# Install dependencies
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv
+
+# Setup venv and install
+python3 -m venv venv
+source venv/bin/activate
+pip install fastapi uvicorn pydantic pandas mlflow joblib
+
+# Run service (choose unique port like 8001, 8002, etc.)
+nohup uvicorn app:app --host 0.0.0.0 --port 8XXX > app.log 2>&1 &
+```
+
+### Test Remote
+```bash
+curl http://87.21.99.126:8XXX/predict
+```
+
+---
+
+## Level 1 - Local Docker ✓
+
+### Build Image
+```bash
+cd app
+docker build -t mlops-house-predictor:latest .
+```
+
+### Run Container
+```bash
+docker run -d -p 8000:8000 --name mlops-app mlops-house-predictor:latest
+```
+
+### Test
+```bash
+curl http://localhost:8000/predict
+```
+
+### Stop and Remove
+```bash
+docker stop mlops-app
+docker rm mlops-app
+```
+
+---
+
+## Level 2 - Docker on VM
+
+### On Local Machine
+```bash
+# Tag for Docker Hub
+docker tag mlops-house-predictor:latest YOUR_USERNAME/mlops-house-predictor:latest
+
+# Push to Docker Hub
+docker login
+docker push YOUR_USERNAME/mlops-house-predictor:latest
+```
+
+### On VM
+```bash
+ssh -p 8087 ubuntu@87.21.99.126
+
+# Pull and run
+docker pull YOUR_USERNAME/mlops-house-predictor:latest
+docker run -d -p 8XXX:8000 --name mlops-app YOUR_USERNAME/mlops-house-predictor:latest
+```
+
+### Test
+```bash
+curl http://87.21.99.126:8XXX/predict
+```
+
+---
+
+## Level 3 - CI/CD with GitHub Actions ✓
+
+### Setup GitHub Secrets
+
+Go to: `https://github.com/milik0/mlops/settings/secrets/actions`
+
+Add these secrets:
+- `DOCKER_USERNAME` - Your Docker Hub username
+- `DOCKER_PASSWORD` - Your Docker Hub password
+- `VM_HOST` - `87.21.99.126`
+- `VM_USERNAME` - `ubuntu`
+- `VM_PASSWORD` - `Supermotdepasse!42`
+- `VM_PORT` - `8087`
+- `VM_DEPLOY_PATH` - `/home/ubuntu/YOUR_INITIALS`
+- `VM_APP_PORT` - Your port (e.g., `8001`)
+
+### Trigger Pipeline
+```bash
+# Make any change
+echo "# Update" >> README.md
+git add .
+git commit -m "feat: trigger CI/CD"
+git push origin main
+```
+
+### Monitor Pipeline
+1. Go to: `https://github.com/milik0/mlops/actions`
+2. Watch workflow run
+3. Check logs for any errors
+
+### Verify Deployment
+```bash
+# After pipeline completes
+curl http://87.21.99.126:YOUR_PORT/predict
+```
+
+---
+
+## Useful Commands
+
+### Docker
+```bash
+# List containers
+docker ps -a
+
+# View logs
+docker logs mlops-app
+
+# Stop all containers
+docker stop $(docker ps -q)
+
+# Remove all containers
+docker rm $(docker ps -aq)
+
+# Remove images
+docker image prune -f
+```
+
+### Docker Compose
+```bash
+# Start services
+docker compose up -d
+
+# View logs
+docker compose logs -f app
+
+# Restart service
+docker compose restart app
+
+# Stop services
+docker compose down
+
+# Rebuild and start
+docker compose up -d --build
+```
+
+### Testing
+```bash
+# Run all tests
+pytest -v
+
+# Run specific test file
+pytest tests/test_api_simple.py -v
+
+# Run with coverage
+pytest --cov=app tests/
+```
+
+### Git
+```bash
+# Check status
+git status
+
+# Add all changes
+git add .
+
+# Commit
+git commit -m "your message"
+
+# Push
+git push origin main
+
+# View recent commits
+git log --oneline -10
+```
+
+---
+
+## Port Assignments
+
+Make sure everyone uses unique ports on the VM:
+- Person 1: 8001
+- Person 2: 8002
+- Person 3: 8003
+- etc.
+
+---
+
+## Troubleshooting
+
+### Port in use
+```bash
+# Find process on port
+sudo netstat -tulpn | grep 8000
+
+# Kill process
+kill -9 <PID>
+```
+
+### Docker permission denied
+```bash
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Or use sudo
+sudo docker ps
+```
+
+### Can't connect to VM
+```bash
+# Test connection
+ping 87.21.99.126
+
+# Verbose SSH
+ssh -v -p 8087 ubuntu@87.21.99.126
+```
+
+### Pipeline fails
+1. Check GitHub Actions logs
+2. Verify all secrets are set
+3. Test Docker build locally
+4. Check VM has Docker installed
