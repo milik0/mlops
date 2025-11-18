@@ -1,31 +1,38 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import pandas as pd
-import mlflow
-import mlflow.pyfunc as pyfunc
-from typing import Optional, Any, cast
+import joblib
+from typing import Optional, Any
+import os
 
-mlflow.set_tracking_uri("http://mlflow:8080")
-MLFLOW_MODEL_URI = "models:/tracking-quickstart/2"
+# Model path from environment variable or default to /models/regression.joblib for Docker volume mount
+MODEL_PATH = os.getenv("MODEL_PATH", "/models/regression.joblib")
 
-# Do not load the model at import time to avoid crashing the app when MLflow
-# is not available (e.g., running locally without MLflow server).
+# Fallback to local paths if the default doesn't exist (for local development)
+if not os.path.exists(MODEL_PATH):
+    if os.path.exists("regression.joblib"):
+        MODEL_PATH = "regression.joblib"
+    else:
+        MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "regression.joblib")
+
+# Load the model at startup
 model: Optional[Any] = None
 
-def load_model_from_uri(uri: str):
-    """Attempt to load a model from MLflow and return it, or None on failure."""
+def load_model_from_file(path: str):
+    """Attempt to load a model from joblib file and return it, or None on failure."""
     global model
     try:
-        loaded = pyfunc.load_model(uri)
+        loaded = joblib.load(path)
         model = loaded
+        print(f"[app] Model loaded successfully from {path}")
         return model
     except Exception as e:
         # Keep model as None and log the error for debugging (don't raise here)
-        print(f"[app] Failed to load model from {uri}: {e}")
+        print(f"[app] Failed to load model from {path}: {e}")
         return None
 
-# Try a best-effort load of the default model but don't fail the import if it fails.
-load_model_from_uri(MLFLOW_MODEL_URI)
+# Try to load the model at startup
+load_model_from_file(MODEL_PATH)
 
 app = FastAPI()
 
@@ -34,7 +41,7 @@ class PredictRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"status": "FastAPI MLflow service running"}
+    return {"status": "FastAPI service running"}
 
 
 @app.get("/predict")
@@ -51,16 +58,14 @@ def predict_get():
 def predict(request: PredictRequest):
     global model
     try:
-        # If model is not loaded, try to load the default model once.
+        # If model is not loaded, try to load it once.
         if model is None:
-            if load_model_from_uri(MLFLOW_MODEL_URI) is None:
+            if load_model_from_file(MODEL_PATH) is None:
                 # Service temporary unavailable because no model is loaded
                 raise HTTPException(status_code=503, detail="Model not available")
 
         df = pd.DataFrame(request.data)
-        # mypy/linters can't always infer the None-check above, so cast for safety
-        m = cast(Any, model)
-        preds = m.predict(df)
+        preds = model.predict(df)
 
         # Ensure predictions are JSON serializable
         try:
@@ -76,20 +81,20 @@ def predict(request: PredictRequest):
 
 
 class UpdateModelRequest(BaseModel):
-    model_uri: str
+    model_path: str
 
 @app.post("/update-model")
 def update_model(request: UpdateModelRequest):
-    """Load a new model from the provided URI and replace the in-memory model.
+    """Load a new model from the provided file path and replace the in-memory model.
 
     Returns a 400 response if loading fails.
     """
     global model
     try:
-        loaded = load_model_from_uri(request.model_uri)
+        loaded = load_model_from_file(request.model_path)
         if loaded is None:
-            raise HTTPException(status_code=400, detail=f"Failed to load model from {request.model_uri}")
-        return {"status": f"Model updated from {request.model_uri}"}
+            raise HTTPException(status_code=400, detail=f"Failed to load model from {request.model_path}")
+        return {"status": f"Model updated from {request.model_path}"}
     except HTTPException:
         raise
     except Exception as e:
